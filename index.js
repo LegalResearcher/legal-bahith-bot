@@ -1,6 +1,7 @@
-const express = require('express');
+﻿const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
 const { Configuration, OpenAIApi } = require('openai');
 
 const app = express();
@@ -8,6 +9,7 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -24,7 +26,13 @@ app.post('/ask', async (req, res) => {
   try {
     const completion = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: question }],
+      messages: [
+        {
+          role: 'system',
+          content: 'أنت مساعد قانوني ذكي. أجب فقط على الأسئلة القانونية اليمنية بإجابات دقيقة ومختصرة مدعومة برقم المادة إن أمكن.',
+        },
+        { role: 'user', content: question }
+      ],
     });
 
     const answer = completion.data.choices[0].message.content;
@@ -35,6 +43,10 @@ app.post('/ask', async (req, res) => {
   }
 });
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+  console.log(`✅ Server running on port ${port}`);
 });
