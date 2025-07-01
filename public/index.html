@@ -1,100 +1,39 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>منصة الباحث القانوني ⚖️</title>
-  <style>
-    body {
-      font-family: 'Cairo', sans-serif;
-      background-color: #f4f4f4;
-      color: #222;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-      direction: rtl;
-    }
-    header {
-      background: linear-gradient(to left, #003973, #E5E5BE);
-      padding: 20px;
-      color: white;
-    }
-    h1 {
-      margin: 0;
-      font-size: 26px;
-    }
-    .container {
-      max-width: 700px;
-      margin: 30px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    textarea {
-      width: 100%;
-      height: 100px;
-      padding: 15px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      resize: vertical;
-    }
-    button {
-      margin-top: 15px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #218838;
-    }
-    #answer {
-      margin-top: 20px;
-      background: #f9f9f9;
-      border: 1px solid #ccc;
-      padding: 15px;
-      border-radius: 8px;
-      text-align: right;
-      white-space: pre-wrap;
-    }
-  </style>
+  <title>الباحث القانوني</title>
 </head>
-<body>
-  <header>
-    <h1>⚖️ منصة الباحث القانوني</h1>
-    <p>اسألني عن أي مادة قانونية يمنية وسأرد عليك فورًا</p>
-  </header>
-
-  <div class="container">
-    <textarea id="question" placeholder="اكتب سؤالك هنا..."></textarea>
-    <button onclick="sendQuestion()">إرسال السؤال</button>
-    <div id="answer"></div>
-  </div>
+<body style="text-align:center; padding:50px; direction:rtl;">
+  <h2>مرحبا بك في البوت القانوني</h2>
+  <textarea id="question" placeholder="اكتب سؤالك هنا..." rows="5" cols="40"></textarea><br><br>
+  <button onclick="sendQuestion()">أرسل السؤال</button>
+  <div id="answer" style="margin-top:20px; font-weight:bold;"></div>
 
   <script>
     async function sendQuestion() {
-      const question = document.getElementById('question').value.trim();
-      const answerDiv = document.getElementById('answer');
-      if (!question) {
-        answerDiv.textContent = 'يرجى كتابة سؤال أولاً.';
+      const question = document.getElementById("question").value;
+      const answerDiv = document.getElementById("answer");
+
+      if (!question.trim()) {
+        answerDiv.textContent = "⚠️ الرجاء كتابة سؤال أولاً.";
         return;
       }
-      answerDiv.textContent = '⏳ جاري المعالجة...';
+
+      answerDiv.textContent = "⏳ جاري المعالجة...";
       try {
         const response = await fetch('/ask', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({ question })
         });
+
         const data = await response.json();
-        answerDiv.textContent = data.answer || 'لم يتم العثور على إجابة.';
-      } catch (err) {
-        answerDiv.textContent = 'حدث خطأ أثناء الاتصال بالخادم.';
+        answerDiv.textContent = data.answer;
+      } catch (error) {
+        answerDiv.textContent = "❌ حدث خطأ أثناء المعالجة.";
       }
     }
   </script>
