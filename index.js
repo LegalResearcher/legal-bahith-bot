@@ -1,52 +1,26 @@
-﻿const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
+const express = require('express');
 const path = require('path');
-const { Configuration, OpenAIApi } = require('openai');
-
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(bodyParser.json());
+// لجعل مجلد "public" متاح للوصول إليه (يحتوي على index.html)
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
-
+// نقطة استلام الأسئلة من المستخدم
 app.post('/ask', async (req, res) => {
-  const { question } = req.body;
+  const question = req.body.question;
 
   if (!question) {
-    return res.status(400).json({ error: 'السؤال مطلوب' });
+    return res.status(400).json({ answer: 'يرجى كتابة سؤال.' });
   }
 
-  try {
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: 'أنت مساعد قانوني ذكي. أجب فقط على الأسئلة القانونية اليمنية بإجابات دقيقة ومختصرة مدعومة برقم المادة إن أمكن.',
-        },
-        { role: 'user', content: question }
-      ],
-    });
+  // هنا تربط بـ ChatGPT أو تضع إجابة وهمية مؤقتًا
+  const dummyAnswer = `سؤالك كان: "${question}" ✅ (هنا سيتم الرد الحقيقي من GPT)`;
 
-    const answer = completion.data.choices[0].message.content;
-    res.json({ answer });
-  } catch (error) {
-    console.error('OpenAI Error:', error.message);
-    res.status(500).json({ error: 'حدث خطأ أثناء الاتصال بـ OpenAI' });
-  }
-});
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.json({ answer: dummyAnswer });
 });
 
 app.listen(port, () => {
-  console.log(`✅ Server running on port ${port}`);
+  console.log(`✅ Legal Bot is running on port ${port}`);
 });
