@@ -1,26 +1,37 @@
 const express = require('express');
-const path = require('path');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const { Configuration, OpenAIApi } = require('openai');
+
 const app = express();
-const port = process.env.PORT || 3000;
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static('public')); // هذا لتشغيل index.html
 
-// لجعل مجلد "public" متاح للوصول إليه (يحتوي على index.html)
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
-
-// نقطة استلام الأسئلة من المستخدم
-app.post('/ask', async (req, res) => {
-  const question = req.body.question;
-
-  if (!question) {
-    return res.status(400).json({ answer: 'يرجى كتابة سؤال.' });
-  }
-
-  // هنا تربط بـ ChatGPT أو تضع إجابة وهمية مؤقتًا
-  const dummyAnswer = `سؤالك كان: "${question}" ✅ (هنا سيتم الرد الحقيقي من GPT)`;
-
-  res.json({ answer: dummyAnswer });
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-app.listen(port, () => {
-  console.log(`✅ Legal Bot is running on port ${port}`);
+const openai = new OpenAIApi(configuration);
+
+app.post('/ask', async (req, res) => {
+  const question = req.body.question;
+  const finalPrompt = `أجب كخبير قانوني يمني معتمد، لا تخرج عن القوانين اليمنية. السؤال: ${question}`;
+
+  try {
+    const response = await openai.createChatCompletion({
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: finalPrompt }],
+    });
+
+    res.json({ answer: response.data.choices[0].message.content });
+  } catch (error) {
+    console.error('Error:', error.message);
+    res.status(500).json({ answer: 'حدث خطأ أثناء الاتصال بـ GPT. حاول لاحقًا.' });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
